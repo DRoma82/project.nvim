@@ -83,6 +83,8 @@ local function find_project_files(prompt_bufnr)
     mode = "insert",
   }
   if cd_successful then
+    local openFinder = false
+
     builtin.find_files(opt)
   end
 end
@@ -93,7 +95,9 @@ local function browse_project_files(prompt_bufnr)
     cwd = project_path,
     hidden = config.options.show_hidden,
   }
-  if cd_successful then
+
+  local opened_readme = open_readme(project_path)
+  if cd_successful and not opened_readme then
     builtin.file_browser(opt)
   end
 end
@@ -139,38 +143,56 @@ local function delete_project(prompt_bufnr)
   end
 end
 
+local function open_readme(project_path)
+  if not config.options.open_readme then
+    return false
+  end
+
+  local readme_files = { "README.md", "README.adoc", "README.txt", "README" }
+  for _, readme_file in ipairs(readme_files) do
+    local full_path = project_path .. "/" .. readme_file
+    if vim.fn.filereadable(full_path) == 1 then
+      vim.cmd("edit " .. full_path)
+      return true
+    end
+  end
+  return false
+end
+
 ---Main entrypoint for Telescope.
 ---@param opts table
 local function projects(opts)
   opts = opts or {}
 
-  pickers.new(opts, {
-    prompt_title = "Recent Projects",
-    finder = create_finder(),
-    previewer = false,
-    sorter = telescope_config.generic_sorter(opts),
-    attach_mappings = function(prompt_bufnr, map)
-      map("n", "f", find_project_files)
-      map("n", "b", browse_project_files)
-      map("n", "d", delete_project)
-      map("n", "s", search_in_project_files)
-      map("n", "r", recent_project_files)
-      map("n", "w", change_working_directory)
+  pickers
+    .new(opts, {
+      prompt_title = "Recent Projects",
+      finder = create_finder(),
+      previewer = false,
+      sorter = telescope_config.generic_sorter(opts),
+      attach_mappings = function(prompt_bufnr, map)
+        map("n", "f", find_project_files)
+        map("n", "b", browse_project_files)
+        map("n", "d", delete_project)
+        map("n", "s", search_in_project_files)
+        map("n", "r", recent_project_files)
+        map("n", "w", change_working_directory)
 
-      map("i", "<c-f>", find_project_files)
-      map("i", "<c-b>", browse_project_files)
-      map("i", "<c-d>", delete_project)
-      map("i", "<c-s>", search_in_project_files)
-      map("i", "<c-r>", recent_project_files)
-      map("i", "<c-w>", change_working_directory)
+        map("i", "<c-f>", find_project_files)
+        map("i", "<c-b>", browse_project_files)
+        map("i", "<c-d>", delete_project)
+        map("i", "<c-s>", search_in_project_files)
+        map("i", "<c-r>", recent_project_files)
+        map("i", "<c-w>", change_working_directory)
 
-      local on_project_selected = function()
-        find_project_files(prompt_bufnr)
-      end
-      actions.select_default:replace(on_project_selected)
-      return true
-    end,
-  }):find()
+        local on_project_selected = function()
+          find_project_files(prompt_bufnr)
+        end
+        actions.select_default:replace(on_project_selected)
+        return true
+      end,
+    })
+    :find()
 end
 
 return telescope.register_extension({
