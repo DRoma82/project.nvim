@@ -75,6 +75,22 @@ local function change_working_directory(prompt_bufnr, prompt)
   return project_path, cd_successful
 end
 
+local function open_readme(project_path)
+  if not config.options.open_readme then
+    return false
+  end
+
+  local readme_files = { "README.md", "README.adoc", "README.txt", "README" }
+  for _, readme_file in ipairs(readme_files) do
+    local full_path = project_path .. "/" .. readme_file
+    if vim.fn.filereadable(full_path) == 1 then
+      vim.cmd("edit " .. full_path)
+      return true
+    end
+  end
+  return false
+end
+
 local function find_project_files(prompt_bufnr)
   local project_path, cd_successful = change_working_directory(prompt_bufnr, true)
   local opt = {
@@ -82,9 +98,9 @@ local function find_project_files(prompt_bufnr)
     hidden = config.options.show_hidden,
     mode = "insert",
   }
-  if cd_successful then
-    local openFinder = false
 
+  local opened_readme = open_readme(project_path)
+  if cd_successful and not opened_readme then
     builtin.find_files(opt)
   end
 end
@@ -141,22 +157,6 @@ local function delete_project(prompt_bufnr)
       reset_prompt = true,
     })
   end
-end
-
-local function open_readme(project_path)
-  if not config.options.open_readme then
-    return false
-  end
-
-  local readme_files = { "README.md", "README.adoc", "README.txt", "README" }
-  for _, readme_file in ipairs(readme_files) do
-    local full_path = project_path .. "/" .. readme_file
-    if vim.fn.filereadable(full_path) == 1 then
-      vim.cmd("edit " .. full_path)
-      return true
-    end
-  end
-  return false
 end
 
 ---Main entrypoint for Telescope.
