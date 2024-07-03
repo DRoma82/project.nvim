@@ -13,6 +13,7 @@ local actions = require("telescope.actions")
 local state = require("telescope.actions.state")
 local builtin = require("telescope.builtin")
 local entry_display = require("telescope.pickers.entry_display")
+local oil = require("oil")
 
 local history = require("project_nvim.utils.history")
 local project = require("project_nvim.project")
@@ -101,7 +102,8 @@ local function find_project_files(prompt_bufnr)
 
   local opened_readme = open_readme(project_path)
   if cd_successful and not opened_readme then
-    builtin.find_files(opt)
+    -- builtin.find_files(opt)
+	oil.open(project_path)
   end
 end
 
@@ -114,7 +116,8 @@ local function browse_project_files(prompt_bufnr)
 
   local opened_readme = open_readme(project_path)
   if cd_successful and not opened_readme then
-    builtin.file_browser(opt)
+    -- builtin.file_browser(opt)
+	oil.open(project_path)
   end
 end
 
