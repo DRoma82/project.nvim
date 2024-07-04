@@ -103,7 +103,7 @@ local function find_project_files(prompt_bufnr)
   local opened_readme = open_readme(project_path)
   if cd_successful and not opened_readme then
     -- builtin.find_files(opt)
-	oil.open(project_path)
+    oil.open(project_path)
   end
 end
 
@@ -117,7 +117,7 @@ local function browse_project_files(prompt_bufnr)
   local opened_readme = open_readme(project_path)
   if cd_successful and not opened_readme then
     -- builtin.file_browser(opt)
-	oil.open(project_path)
+    oil.open(project_path)
   end
 end
 
@@ -125,8 +125,8 @@ local function search_in_project_files(prompt_bufnr)
   local project_path, cd_successful = change_working_directory(prompt_bufnr, true)
   local opt = {
     cwd = project_path,
-    hidden = config.options.show_hidden,
     mode = "insert",
+    find_command = { "fd", "--files", "--hidden", "-g", "!.git" },
   }
   if cd_successful then
     builtin.live_grep(opt)
